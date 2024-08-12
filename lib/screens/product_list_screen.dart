@@ -15,12 +15,13 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
-  final List<Product> _products = [];
+  final List<Product> _products = [Product(name: 'Персик', price:15, date: DateTime(2024, 6,13), group: 'Фрукты')];
   final List<ProductName> _productNames = [];
   final List<ProductGroup> _productGroups = [
-    ProductGroup('Fruits'),
-    ProductGroup('Vegetables')
+    ProductGroup('Фрукты'),
+    ProductGroup('Овощи')
   ];
+  
 
   @override
   void initState() {
@@ -149,7 +150,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Price Tracker'),
+        title: Text('Фиксатор цен'),
         actions: [
           IconButton(
             icon: Icon(Icons.edit),

@@ -47,7 +47,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
           children: [
             DropdownButton<String>(
               value: _selectedProductName.isEmpty ? null : _selectedProductName,
-              hint: Text('Select Product to Edit'),
+              hint: Text('Выбери продукт для редактирования'),
               items: widget.productNames
                   .map((productName) => DropdownMenuItem<String>(
                         value: productName.name,
@@ -62,11 +62,11 @@ class _EditProductScreenState extends State<EditProductScreen> {
             ),
             TextField(
               controller: _newProductNameController,
-              decoration: InputDecoration(labelText: 'New Product Name'),
+              decoration: InputDecoration(labelText: 'Новое название товара'),
             ),
             ElevatedButton(
               onPressed: _submitData,
-              child: Text('Edit Product'),
+              child: Text('Редактирование товара'),
             ),
           ],
         ),

@@ -49,7 +49,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Product'),
+        title: Text('Добавить название продукта'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -59,7 +59,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             DropdownButton<String>(
               value:
                   _selectedProductGroup.isEmpty ? null : _selectedProductGroup,
-              hint: Text('Select Product Group'),
+              hint: Text('Выбери группу'),
               items: widget.productGroups
                   .map((productGroup) => DropdownMenuItem<String>(
                         value: productGroup.name,
@@ -75,7 +75,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             DropdownButton<String>(
               value: _selectedProductName.isEmpty ? null : _selectedProductName,
-              hint: Text('Select Product'),
+              hint: Text('Выбери продукт'),
               items: widget.productNames
                   .where((productName) =>
                       productName.group == _selectedProductGroup)
@@ -92,12 +92,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             TextField(
               controller: _priceController,
-              decoration: InputDecoration(labelText: 'Price'),
+              decoration: InputDecoration(labelText: 'Цена'),
               keyboardType: TextInputType.number,
             ),
             ElevatedButton(
               onPressed: _submitData,
-              child: Text('Add Product'),
+              child: Text('Добавить продукт'),
             ),
           ],
         ),

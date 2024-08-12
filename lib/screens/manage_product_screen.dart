@@ -62,7 +62,7 @@ class _ManageProductScreenState extends State<ManageProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Manage Products'),
+        title: Text('Менеджер товаров'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -71,16 +71,16 @@ class _ManageProductScreenState extends State<ManageProductScreen> {
           children: [
             TextField(
               controller: _productGroupController,
-              decoration: InputDecoration(labelText: 'New Product Group'),
+              decoration: InputDecoration(labelText: 'Новая группа товаров'),
             ),
             ElevatedButton(
               onPressed: _submitProductGroup,
-              child: Text('Add Product Group'),
+              child: Text('Добавить группу товаров'),
             ),
             DropdownButton<String>(
               value:
                   _selectedProductGroup.isEmpty ? null : _selectedProductGroup,
-              hint: Text('Select Product Group'),
+              hint: Text('Выбрать группу'),
               items: widget.productGroups
                   .map((productGroup) => DropdownMenuItem<String>(
                         value: productGroup.name,
@@ -95,15 +95,15 @@ class _ManageProductScreenState extends State<ManageProductScreen> {
             ),
             TextField(
               controller: _productNameController,
-              decoration: InputDecoration(labelText: 'New Product Name'),
+              decoration: InputDecoration(labelText: 'Новое название товара'),
             ),
             ElevatedButton(
               onPressed: _submitProductName,
-              child: Text('Add Product'),
+              child: Text('Добавить товар'),
             ),
             TextButton(
               onPressed: _editProductName,
-              child: Text('Edit Product Name'),
+              child: Text('Редактировать товар'),
             ),
           ],
         ),
