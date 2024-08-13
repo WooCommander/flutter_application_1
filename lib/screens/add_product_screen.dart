@@ -4,7 +4,7 @@ import '../models/product.dart';
 import '../models/product_group.dart';
 
 class AddProductScreen extends StatefulWidget {
-  final Function(String, double, String) addProduct;
+  final Function(String, double, double, String) addProduct;
   final List<ProductName> productNames;
   final List<ProductGroup> productGroups;
 
@@ -20,24 +20,30 @@ class AddProductScreen extends StatefulWidget {
 
 class _AddProductScreenState extends State<AddProductScreen> {
   final _priceController = TextEditingController();
+  final _quantityController =
+      TextEditingController(); // Добавлен контроллер для количества
   String _selectedProductName = '';
   String _selectedProductGroup = '';
 
   void _submitData() {
     if (_selectedProductName.isEmpty ||
         _priceController.text.isEmpty ||
+        _quantityController.text.isEmpty ||
         _selectedProductGroup.isEmpty) {
       return;
     }
 
     final enteredPrice = double.parse(_priceController.text);
-    if (enteredPrice <= 0) {
+    final enteredQuantity =
+        double.parse(_quantityController.text); // Получение количества
+    if (enteredPrice <= 0 || enteredQuantity <= 0) {
       return;
     }
 
-    widget.addProduct(
-        _selectedProductName, enteredPrice, _selectedProductGroup);
+    widget.addProduct(_selectedProductName, enteredPrice, enteredQuantity,
+        _selectedProductGroup);
     _priceController.clear();
+    _quantityController.clear(); // Очистка поля количества
     setState(() {
       _selectedProductName = '';
       _selectedProductGroup = '';
@@ -49,7 +55,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Добавить название продукта'),
+        title: Text('Add Product'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -59,7 +65,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             DropdownButton<String>(
               value:
                   _selectedProductGroup.isEmpty ? null : _selectedProductGroup,
-              hint: Text('Выбери группу'),
+              hint: Text('Select Product Group'),
               items: widget.productGroups
                   .map((productGroup) => DropdownMenuItem<String>(
                         value: productGroup.name,
@@ -75,7 +81,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             DropdownButton<String>(
               value: _selectedProductName.isEmpty ? null : _selectedProductName,
-              hint: Text('Выбери продукт'),
+              hint: Text('Select Product'),
               items: widget.productNames
                   .where((productName) =>
                       productName.group == _selectedProductGroup)
@@ -92,12 +98,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             TextField(
               controller: _priceController,
-              decoration: InputDecoration(labelText: 'Цена'),
+              decoration: InputDecoration(labelText: 'Price per unit'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _quantityController, // Поле для ввода количества
+              decoration: InputDecoration(labelText: 'Quantity'),
               keyboardType: TextInputType.number,
             ),
             ElevatedButton(
               onPressed: _submitData,
-              child: Text('Добавить продукт'),
+              child: Text('Add Product'),
             ),
           ],
         ),
