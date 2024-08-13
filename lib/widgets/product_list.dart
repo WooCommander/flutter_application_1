@@ -13,6 +13,7 @@ class ProductList extends StatelessWidget {
         'dd.MM.yyyy'); // Вы можете настроить формат по своему усмотрению
     return formatter.format(date);
   }
+
   @override
   Widget build(BuildContext context) {
     final groupedProducts = _groupProductsByCategory(products);
@@ -24,12 +25,16 @@ class ProductList extends StatelessWidget {
         final groupProducts = groupedProducts[group]!;
 
         return ExpansionTile(
-          title: Text(group),
+          title: Text( '${group}, количество ${groupProducts.length}'),
           children: groupProducts
               .map((product) => ListTile(
-                    title: Text(product.name),
+                    title: Text(product.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold, // Делает текст жирным
+                          fontSize: 18.0, // Увеличивает размер текста
+                        )),
                     subtitle: Text(
-                        'Цена за единицу: ${product.price.toStringAsFixed(2)}, Количество: ${product.quantity}, ${formatDate(product.date)}'),
+                        'Цена: ${product.price.toStringAsFixed(2)}, Количество: ${product.quantity}, Сумма:${(product.price.toDouble() * product.quantity.toDouble()).toStringAsFixed(2)}, Дата: ${formatDate(product.date)}'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
