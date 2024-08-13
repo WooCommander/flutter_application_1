@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/product.dart';
 
 class ProductList extends StatelessWidget {
@@ -7,7 +8,11 @@ class ProductList extends StatelessWidget {
   final Function(Product) onDelete;
 
   ProductList(this.products, {required this.onEdit, required this.onDelete});
-
+  String formatDate(DateTime date) {
+    final DateFormat formatter = DateFormat(
+        'dd.MM.yyyy'); // Вы можете настроить формат по своему усмотрению
+    return formatter.format(date);
+  }
   @override
   Widget build(BuildContext context) {
     final groupedProducts = _groupProductsByCategory(products);
@@ -24,7 +29,7 @@ class ProductList extends StatelessWidget {
               .map((product) => ListTile(
                     title: Text(product.name),
                     subtitle: Text(
-                        'Цена за единицу: ${product.price.toStringAsFixed(2)}, Количество: ${product.quantity}'),
+                        'Цена за единицу: ${product.price.toStringAsFixed(2)}, Количество: ${product.quantity}, ${formatDate(product.date)}'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
