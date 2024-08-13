@@ -15,8 +15,10 @@ class ProductListScreen extends StatefulWidget {
 
 class _ProductListScreenState extends State<ProductListScreen> {
   final List<Product> _products = [];
+  final List<Product> _filteredProducts = [];
   final List<ProductName> _productNames = [];
   final List<ProductGroup> _productGroups = [];
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -27,17 +29,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
   void _loadProducts() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Проверка флага, была ли уже выполнена инициализация
     final isInitialized = prefs.getBool('isInitialized') ?? false;
 
     if (!isInitialized) {
-      // Если инициализация не выполнена, добавляем предустановленные данные
       _initializeDefaultData();
-
-      // Устанавливаем флаг, что инициализация выполнена
       await prefs.setBool('isInitialized', true);
     } else {
-      // Загружаем сохранённые данные
       final productData = prefs.getString('products');
       final productNameData = prefs.getString('productNames');
       final productGroupData = prefs.getString('productGroups');
@@ -52,6 +49,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 date: DateTime.parse(item['date']),
                 group: item['group'],
               )));
+          _filteredProducts.addAll(_products);
         });
       }
 
@@ -74,11 +72,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   void _initializeDefaultData() {
-    // Добавляем предустановленные группы, если их ещё нет
     _addProductGroup('Фрукты');
     _addProductGroup('Овощи');
 
-    // Добавляем предустановленные товары, если их ещё нет
     _addProductName('Персик', 'Фрукты');
     _addProductName('Яблоко', 'Фрукты');
     _addProductName('Груша', 'Фрукты');
@@ -112,12 +108,26 @@ class _ProductListScreenState extends State<ProductListScreen> {
     prefs.setString('productGroups', json.encode(productGroupList));
   }
 
+  void _filterProducts(String query) {
+    setState(() {
+      _searchQuery = query.toLowerCase();
+      _filteredProducts.clear();
+      _filteredProducts.addAll(
+        _products.where((product) {
+          return product.name.toLowerCase().contains(_searchQuery) ||
+              product.group.toLowerCase().contains(_searchQuery);
+        }).toList(),
+      );
+    });
+  }
+
   void _clearData() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // Очистка всех сохранённых данных
+    await prefs.clear();
 
     setState(() {
       _products.clear();
+      _filteredProducts.clear();
       _productNames.clear();
       _productGroups.clear();
     });
@@ -125,12 +135,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   void _addProduct(String name, double price, double quantity, String group) {
     setState(() {
-      _products.add(Product(
-          name: name,
-          price: price,
-          quantity: quantity,
-          date: DateTime.now(),
-          group: group));
+      final newProduct = Product(
+        name: name,
+        price: price,
+        quantity: quantity,
+        date: DateTime.now(),
+        group: group,
+      );
+      _products.add(newProduct);
+      _filteredProducts.add(newProduct);
       _saveProducts();
     });
   }
@@ -184,7 +197,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-void _deleteProduct(Product product) {
+  void _deleteProduct(Product product) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -194,17 +207,18 @@ void _deleteProduct(Product product) {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(ctx).pop(); // Закрываем диалог без удаления
+              Navigator.of(ctx).pop();
             },
             child: Text('Отмена'),
           ),
           TextButton(
             onPressed: () {
               setState(() {
-                _products.remove(product); // Удаление товара
-                _saveProducts(); // Сохранение изменений
+                _products.remove(product);
+                _filteredProducts.remove(product);
+                _saveProducts();
               });
-              Navigator.of(ctx).pop(); // Закрываем диалог после удаления
+              Navigator.of(ctx).pop();
             },
             child: Text('Удалить'),
           ),
@@ -212,7 +226,6 @@ void _deleteProduct(Product product) {
       ),
     );
   }
-
 
   void _addProductName(String name, String group) {
     bool productExists = _productNames.any((productName) =>
@@ -297,7 +310,7 @@ void _deleteProduct(Product product) {
         actions: [
           IconButton(
             icon: Icon(Icons.delete),
-            onPressed: () => _clearData(), // Кнопка для очистки данных
+            onPressed: () => _clearData(),
           ),
           IconButton(
             icon: Icon(Icons.edit),
@@ -307,9 +320,22 @@ void _deleteProduct(Product product) {
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              decoration: InputDecoration(
+                labelText: 'Поиск товаров...',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                _filterProducts(
+                    value); // Обновление списка при изменении текста
+              },
+            ),
+          ),
           Expanded(
             child: ProductList(
-              _products,
+              _filteredProducts, // Используем отфильтрованный список
               onEdit: _editProduct,
               onDelete: _deleteProduct,
             ),
