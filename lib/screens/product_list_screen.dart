@@ -184,12 +184,35 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  void _deleteProduct(Product product) {
-    setState(() {
-      _products.remove(product);
-      _saveProducts();
-    });
+void _deleteProduct(Product product) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Удалить товар'),
+        content:
+            Text('Вы уверены, что хотите удалить товар "${product.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop(); // Закрываем диалог без удаления
+            },
+            child: Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _products.remove(product); // Удаление товара
+                _saveProducts(); // Сохранение изменений
+              });
+              Navigator.of(ctx).pop(); // Закрываем диалог после удаления
+            },
+            child: Text('Удалить'),
+          ),
+        ],
+      ),
+    );
   }
+
 
   void _addProductName(String name, String group) {
     bool productExists = _productNames.any((productName) =>
