@@ -25,7 +25,7 @@ class ProductList extends StatelessWidget {
         final groupProducts = groupedProducts[group]!;
 
         return ExpansionTile(
-          title: Text( '${group}, количество ${groupProducts.length}'),
+          title: Text('${group}, количество ${groupProducts.length}'),
           children: groupProducts
               .map((product) => ListTile(
                     title: Text(product.name,
