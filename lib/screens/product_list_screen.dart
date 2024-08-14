@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Для форматирования даты
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import '../models/product.dart';
-import '../models/product_group.dart';
-import '../widgets/product_list.dart';
+import '../data/data_provider.dart';
 import 'add_product_screen.dart';
-import 'edit_product_screen.dart';
 import 'manage_product_screen.dart';
-import '../data/default_data.dart'; // Импортируем файл с предустановленными данными
+import '../widgets/product_list_view.dart';
 
 class ProductListScreen extends StatefulWidget {
   @override
@@ -16,243 +11,65 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
-  final List<Product> _products = [];
-  final List<Product> _filteredProducts = [];
-  final List<ProductName> _productNames = [];
-  final List<ProductGroup> _productGroups = [];
-  String _searchQuery = '';
+  // Экземпляр класса DataProvider для управления данными
+  final DataProvider dataProvider = DataProvider();
 
   @override
   void initState() {
     super.initState();
-    _loadProducts();
+    // Загружаем данные при инициализации экрана
+    _loadData();
   }
 
-  void _loadProducts() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final isInitialized = prefs.getBool('isInitialized') ?? false;
-
-    if (!isInitialized) {
-      _initializeDefaultData();
-      await prefs.setBool('isInitialized', true);
-    } else {
-      final productData = prefs.getString('products');
-      final productNameData = prefs.getString('productNames');
-      final productGroupData = prefs.getString('productGroups');
-
-      if (productData != null) {
-        final productList = json.decode(productData) as List;
-        setState(() {
-          _products.addAll(productList.map((item) => Product(
-                name: item['name'],
-                price: item['price'],
-                quantity: (item['quantity'] as num).toDouble(),
-                date: DateTime.parse(item['date']),
-                group: item['group'],
-              )));
-          _filteredProducts.addAll(_products);
-        });
-      }
-
-      if (productNameData != null) {
-        final productNameList = json.decode(productNameData) as List;
-        setState(() {
-          _productNames.addAll(productNameList
-              .map((item) => ProductName(item['name'], item['group'])));
-        });
-      }
-
-      if (productGroupData != null) {
-        final productGroupList = json.decode(productGroupData) as List;
-        setState(() {
-          _productGroups.addAll(
-              productGroupList.map((item) => ProductGroup(item['name'])));
-        });
-      }
-    }
+  // Асинхронный метод для загрузки данных
+  void _loadData() async {
+    await dataProvider
+        .loadProducts(); // Загружаем продукты и другие данные из SharedPreferences
+    setState(() {}); // Обновляем экран после загрузки данных
   }
 
-  void _initializeDefaultData() {
-    // Используем предустановленные данные из default_data.dart
-    _productGroups.addAll(defaultProductGroups);
-    _productNames.addAll(defaultProductNames);
-
-    _saveProducts(); // Сохраняем предустановленные данные
-  }
-
-  void _saveProducts() async {
-    final prefs = await SharedPreferences.getInstance();
-    final productList = _products
-        .map((item) => {
-              'name': item.name,
-              'price': item.price,
-              'quantity': item.quantity,
-              'date': item.date.toIso8601String(),
-              'group': item.group,
-            })
-        .toList();
-    prefs.setString('products', json.encode(productList));
-
-    final productNameList = _productNames
-        .map((item) => {
-              'name': item.name,
-              'group': item.group,
-            })
-        .toList();
-    prefs.setString('productNames', json.encode(productNameList));
-
-    final productGroupList =
-        _productGroups.map((item) => {'name': item.name}).toList();
-    prefs.setString('productGroups', json.encode(productGroupList));
-  }
-
-  void _filterProducts(String query) {
-    setState(() {
-      _searchQuery = query.toLowerCase();
-      _filteredProducts.clear();
-      _filteredProducts.addAll(
-        _products.where((product) {
-          return product.name.toLowerCase().contains(_searchQuery) ||
-              product.group.toLowerCase().contains(_searchQuery);
-        }).toList(),
-      );
-    });
-  }
-
-  Map<String, Map<String, List<Product>>> _groupProductsByDateAndCategory(List<Product> products) {
-    final Map<String, Map<String, List<Product>>> groupedProducts = {};
-
-    for (var product in products) {
-      String formattedDate = DateFormat('dd/MM/yyyy').format(product.date); // Форматируем дату
-      if (!groupedProducts.containsKey(formattedDate)) {
-        groupedProducts[formattedDate] = {};
-      }
-      if (!groupedProducts[formattedDate]!.containsKey(product.group)) {
-        groupedProducts[formattedDate]![product.group] = [];
-      }
-      groupedProducts[formattedDate]![product.group]!.add(product);
-    }
-
-    return groupedProducts;
-  }
-
-  double _calculateTotalForDate(List<Product> products) {
-    return products.fold(0.0, (sum, product) {
-      return sum + (product.price * product.quantity);
-    });
-  }
-
-  Map<String, dynamic> _calculateTotalForGroup(List<Product> products) {
-    double totalAmount = 0.0;
-    int totalItems = 0;
-
-    for (var product in products) {
-      totalAmount += product.price * product.quantity;
-      totalItems += 1; // Считаем количество товаров в группе
-    }
-
-    return {
-      'totalAmount': totalAmount,
-      'totalItems': totalItems,
-    };
-  }
-
-  void _clearData() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-
-    setState(() {
-      _products.clear();
-      _filteredProducts.clear();
-      _productNames.clear();
-      _productGroups.clear();
-    });
-  }
-
+  // Метод для добавления нового продукта
   void _addProduct(String name, double price, double quantity, String group) {
     setState(() {
       final newProduct = Product(
         name: name,
         price: price,
         quantity: quantity,
-        date: DateTime.now(),
+        date: DateTime.now(), // Присваиваем текущую дату добавления товара
         group: group,
       );
-      _products.add(newProduct);
-      _filteredProducts.add(newProduct);
-      _saveProducts();
+      dataProvider.addProduct(newProduct); // Добавляем продукт в DataProvider
     });
   }
 
+  // Метод для редактирования продукта (реализация может быть добавлена позже)
   void _editProduct(Product product) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        final _priceController = TextEditingController(text: product.price.toString());
-        final _quantityController = TextEditingController(text: product.quantity.toString());
-        return AlertDialog(
-          title: Text('Редактировать товар'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _priceController,
-                decoration: InputDecoration(labelText: 'Цена за единицу'),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-              ),
-              TextField(
-                controller: _quantityController,
-                decoration: InputDecoration(labelText: 'Количество'),
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  product.price = double.parse(_priceController.text);
-                  product.quantity = double.parse(_quantityController.text);
-                  _saveProducts();
-                });
-                Navigator.of(ctx).pop();
-              },
-              child: Text('Сохранить'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
-              },
-              child: Text('Отмена'),
-            ),
-          ],
-        );
-      },
-    );
+    // Логика редактирования продукта
   }
 
+  // Метод для удаления продукта с подтверждением
   void _deleteProduct(Product product) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Удалить товар'),
-        content: Text('Вы уверены, что хотите удалить товар "${product.name}"?'),
+        content:
+            Text('Вы уверены, что хотите удалить товар "${product.name}"?'),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(ctx).pop();
+              Navigator.of(ctx).pop(); // Закрыть диалог без удаления
             },
             child: Text('Отмена'),
           ),
           TextButton(
             onPressed: () {
               setState(() {
-                _products.remove(product);
-                _filteredProducts.remove(product);
-                _saveProducts();
+                dataProvider.products
+                    .remove(product); // Удаляем продукт из списка
+                dataProvider.saveProducts(); // Сохраняем изменения
               });
-              Navigator.of(ctx).pop();
+              Navigator.of(ctx).pop(); // Закрыть диалог после удаления
             },
             child: Text('Удалить'),
           ),
@@ -261,84 +78,83 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  void _addProductName(String name, String group) {
-    bool productExists = _productNames.any((productName) => productName.name == name && productName.group == group);
-
-    if (!productExists) {
-      setState(() {
-        _productNames.add(ProductName(name, group));
-        _saveProducts();
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Товар "$name" уже существует в группе "$group"!'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
+  // Метод для очистки всех данных с подтверждением
+  void _clearData() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Очистить все данные'),
+        content: Text('Вы уверены, что хотите очистить все данные?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop(); // Закрыть диалог без очистки данных
+            },
+            child: Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () {
+              dataProvider.clearData().then((_) {
+                setState(() {}); // Обновляем экран после очистки данных
+              });
+              Navigator.of(ctx).pop(); // Закрыть диалог после очистки
+            },
+            child: Text('Очистить'),
+          ),
+        ],
+      ),
+    );
   }
 
-  void _editProductName(String oldName, String newName) {
-    setState(() {
-      for (var product in _products) {
-        if (product.name == oldName) {
-          product.name = newName;
-        }
-      }
-      for (var productName in _productNames) {
-        if (productName.name == oldName) {
-          productName.name = newName;
-        }
-      }
-      _saveProducts();
-    });
-  }
-
-  void _addProductGroup(String name) {
-    bool groupExists = _productGroups.any((group) => group.name == name);
-
-    if (!groupExists) {
-      setState(() {
-        _productGroups.add(ProductGroup(name));
-        _saveProducts();
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Группа "$name" уже существует!'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
+  // Метод для навигации на экран добавления продукта
   void _navigateToAddProductScreen(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (context) => AddProductScreen(
-        addProduct: _addProduct,
-        productNames: _productNames,
-        productGroups: _productGroups,
-        
+        addProduct: _addProduct, // Передаем функцию добавления продукта
+        productNames:
+            dataProvider.productNames, // Передаем список имен продуктов
+        productGroups:
+            dataProvider.productGroups, // Передаем список групп продуктов
       ),
     ));
   }
 
+  // Метод для навигации на экран управления продуктами и группами
   void _navigateToManageProductScreen(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (context) => ManageProductScreen(
-        addProductName: _addProductName,
-        productGroups: _productGroups,
-        addProductGroup: _addProductGroup,
-        productNames: _productNames,
-        editProductName: _editProductName,
+        addProductName: (name, group) {
+          setState(() {
+            dataProvider.addProductName(
+                name, group); // Добавляем новое имя продукта
+          });
+        },
+        productGroups:
+            dataProvider.productGroups, // Передаем список групп продуктов
+        addProductGroup: (name) {
+          setState(() {
+            dataProvider
+                .addProductGroup(name); // Добавляем новую группу продуктов
+          });
+        },
+        productNames:
+            dataProvider.productNames, // Передаем список имен продуктов
+        editProductName: (oldName, newName) {
+          setState(() {
+            final productName = dataProvider.productNames
+                .firstWhere((element) => element.name == oldName);
+            productName.name = newName; // Изменяем имя продукта
+            dataProvider.saveProducts(); // Сохраняем изменения
+          });
+        },
       ),
     ));
   }
 
   @override
   Widget build(BuildContext context) {
-    final groupedProducts = _groupProductsByDateAndCategory(_filteredProducts);
+    // Получаем информацию о самом популярном товаре
+    final mostPopularProduct = dataProvider.getMostPopularProduct();
 
     return Scaffold(
       appBar: AppBar(
@@ -346,77 +162,62 @@ class _ProductListScreenState extends State<ProductListScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.delete),
-            onPressed: () => _clearData(),
+            onPressed: _clearData, // Очистка всех данных при нажатии
           ),
           IconButton(
             icon: Icon(Icons.edit),
-            onPressed: () => _navigateToManageProductScreen(context),
+            onPressed: () => _navigateToManageProductScreen(
+                context), // Переход на экран управления продуктами
           ),
         ],
       ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: InputDecoration(
-                labelText: 'Поиск товаров...',
-                border: OutlineInputBorder(),
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.blueAccent,
+                borderRadius: BorderRadius.circular(10),
               ),
-              onChanged: (value) {
-                _filterProducts(value); // Обновление списка при изменении текста
-              },
+              padding: EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Самый популярный товар:',
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    '${mostPopularProduct['name']}', // Отображаем имя самого популярного товара
+                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                  Text(
+                    'Количество: ${mostPopularProduct['count']}', // Отображаем количество упоминаний этого товара
+                    style: TextStyle(fontSize: 16, color: Colors.white70),
+                  ),
+                ],
+              ),
             ),
           ),
           Expanded(
-            child: ListView(
-              children: groupedProducts.entries.map((dateEntry) {
-                final totalForDate = _calculateTotalForDate(
-                  dateEntry.value.values.expand((x) => x).toList(),
-                );
-
-                return ExpansionTile(
-                  title: Text(
-                    '${dateEntry.key} - Итого: ${totalForDate.toStringAsFixed(2)}',
-                  ),
-                  children: dateEntry.value.entries.map((groupEntry) {
-                    final groupTotals = _calculateTotalForGroup(groupEntry.value);
-                    return ExpansionTile(
-                      title: Text(
-                        '${groupEntry.key} - Итого: ${groupTotals['totalAmount'].toStringAsFixed(2)}, Позиции: ${groupTotals['totalItems']}',
-                      ),
-                      children: groupEntry.value.map((product) {
-                        return ListTile(
-                          title: Text(product.name),
-                          subtitle: Text(
-                            'Цена: ${product.price.toStringAsFixed(2)} x ${product.quantity.toStringAsFixed(2)} = ${(product.price * product.quantity).toStringAsFixed(2)}',
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.edit),
-                                onPressed: () => _editProduct(product),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.delete),
-                                onPressed: () => _deleteProduct(product),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    );
-                  }).toList(),
-                );
-              }).toList(),
+            child: ProductListView(
+              products: dataProvider
+                  .products, // Передаем список продуктов для отображения
+              onEdit: _editProduct, // Передаем функцию редактирования продукта
+              onDelete: _deleteProduct, // Передаем функцию удаления продукта
             ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () => _navigateToAddProductScreen(context),
+        onPressed: () => _navigateToAddProductScreen(
+            context), // Переход на экран добавления продукта
       ),
     );
   }
