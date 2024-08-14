@@ -1,0 +1,17 @@
+{
+  "appTitle": "Price Tracker",
+  "mostPopularProduct": "Most Popular Product",
+  "deleteProduct": "Delete Product",
+  "editProduct": "Edit Product",
+  "clearData": "Clear All Data",
+  "confirmClearData": "Are you sure you want to clear all data?",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "addProduct": "Add Product",
+  "noData": "No Data Available",
+  "unitPrice":"Unit Price",
+  "quantity":"Quantity",
+  "save":"Save",
+  "confirmDeleteProduct": "Are you sure you want to delete the item?",
+  "clear":"Clear"
+}
