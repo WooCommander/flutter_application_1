@@ -10,6 +10,9 @@ import 'manage_product_screen.dart';
 import '../widgets/product_list_view.dart';
 
 class ProductListScreen extends StatefulWidget {
+  
+  final Function(ThemeMode) onToggleTheme;
+  ProductListScreen({required this.onToggleTheme});
   @override
   _ProductListScreenState createState() => _ProductListScreenState();
 }
@@ -235,6 +238,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
       appBar: AppBar(
         title: Text('Фиксатор цен'),
         actions: [
+                  IconButton(
+            icon: Icon(Icons.brightness_6),
+            onPressed: () {
+              // Переключение темы между светлой и темной
+              final currentTheme = Theme.of(context).brightness;
+              widget.onToggleTheme(
+                currentTheme == Brightness.light
+                    ? ThemeMode.dark
+                    : ThemeMode.light,
+              );
+            },
+          ),
           IconButton(
             icon: Icon(Icons.delete),
             onPressed: _clearData, // Очистка всех данных при нажатии
