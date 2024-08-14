@@ -100,18 +100,24 @@ class DataProvider {
     saveProducts();
   }
 
-  Map<String, dynamic> getMostPopularProduct() {
+ Map<String, dynamic> getMostPopularProduct() {
     if (products.isEmpty) {
       return {
         'name': 'Нет данных',
         'count': 0,
+        'lowestPrice': null,
       };
     }
 
     Map<String, int> productCounts = {};
+    Map<String, double> lowestPrices = {};
 
     for (var product in products) {
       productCounts[product.name] = (productCounts[product.name] ?? 0) + 1;
+      if (lowestPrices[product.name] == null ||
+          product.price < lowestPrices[product.name]!) {
+        lowestPrices[product.name] = product.price;
+      }
     }
 
     var mostPopularEntry =
@@ -120,6 +126,7 @@ class DataProvider {
     return {
       'name': mostPopularEntry.key,
       'count': mostPopularEntry.value,
+      'lowestPrice': lowestPrices[mostPopularEntry.key],
     };
   }
 }

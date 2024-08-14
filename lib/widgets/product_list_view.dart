@@ -21,12 +21,12 @@ class ProductListView extends StatelessWidget {
 
         return ExpansionTile(
           title: Text(
-              '${dateEntry.key} - Итого: \$${totalForDate.toStringAsFixed(2)}'),
+              '${dateEntry.key} - Итого: ${totalForDate.toStringAsFixed(2)}'),
           children: dateEntry.value.entries.map((groupEntry) {
             final groupTotals = _calculateTotalForGroup(groupEntry.value);
             return ExpansionTile(
               title: Text(
-                  '${groupEntry.key} - Итого: \$${groupTotals['totalAmount'].toStringAsFixed(2)}, Позиции: ${groupTotals['totalItems']}'),
+                  '${groupEntry.key} - Итого: ${groupTotals['totalAmount'].toStringAsFixed(2)}, (${groupTotals['totalItems']})'),
               children: groupEntry.value.map((product) {
                 return ListTile(
                   title: Text(product.name),
