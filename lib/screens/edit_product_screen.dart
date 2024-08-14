@@ -38,7 +38,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Product'),
+        title: Text('Редактировать тоар'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),

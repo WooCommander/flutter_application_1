@@ -55,7 +55,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Product'),
+        title: Text('Добавить товар'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -65,7 +65,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             DropdownButton<String>(
               value:
                   _selectedProductGroup.isEmpty ? null : _selectedProductGroup,
-              hint: Text('Select Product Group'),
+              hint: Text('Выбрать группу'),
               items: widget.productGroups
                   .map((productGroup) => DropdownMenuItem<String>(
                         value: productGroup.name,
@@ -81,7 +81,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             DropdownButton<String>(
               value: _selectedProductName.isEmpty ? null : _selectedProductName,
-              hint: Text('Select Product'),
+              hint: Text('Выбрать товар'),
               items: widget.productNames
                   .where((productName) =>
                       productName.group == _selectedProductGroup)
@@ -98,17 +98,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             TextField(
               controller: _priceController,
-              decoration: InputDecoration(labelText: 'Price per unit'),
+              decoration: InputDecoration(labelText: 'Цена за еденицу'),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: _quantityController, // Поле для ввода количества
-              decoration: InputDecoration(labelText: 'Quantity'),
+              decoration: InputDecoration(labelText: 'Количество'),
               keyboardType: TextInputType.number,
             ),
             ElevatedButton(
               onPressed: _submitData,
-              child: Text('Add Product'),
+              child: Text('Добавить товар'),
             ),
           ],
         ),
