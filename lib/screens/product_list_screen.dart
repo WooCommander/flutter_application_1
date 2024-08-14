@@ -274,6 +274,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     'Количество: ${mostPopularProduct['count']}', // Отображаем количество упоминаний этого товара
                     style: TextStyle(fontSize: 16, color: Colors.white70),
                   ),
+                    if (mostPopularProduct['lowestPrice'] != null)
+                    Text(
+                      'Лучшая цена: ${mostPopularProduct['lowestPrice'].toStringAsFixed(2)}',
+                      style: TextStyle(fontSize: 16, color: Colors.white70),
+                    ),
                 ],
               ),
             ),
