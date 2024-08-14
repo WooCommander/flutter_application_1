@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/generated/l10n.dart';
 import 'package:flutter_application_1/widgets/most_popular_product.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/product.dart';
@@ -60,18 +61,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
         final _quantityController =
             TextEditingController(text: product.quantity.toString());
         return AlertDialog(
-          title: Text('Редактировать товар'),
+          title: Text(S.of(context).editProduct),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: _priceController,
-                decoration: InputDecoration(labelText: 'Цена за единицу'),
+                decoration: InputDecoration(labelText: S.of(context).unitPrice),
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
               ),
               TextField(
                 controller: _quantityController,
-                decoration: InputDecoration(labelText: 'Количество'),
+                decoration: InputDecoration(labelText: S.of(context).quantity),
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
               ),
             ],
@@ -86,13 +87,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 });
                 Navigator.of(ctx).pop();
               },
-              child: Text('Сохранить'),
+              child: Text(S.of(context).save),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(ctx).pop();
               },
-              child: Text('Отмена'),
+              child: Text(S.of(context).cancel),
             ),
           ],
         );
@@ -106,15 +107,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Удалить товар'),
+        title: Text(S.of(context).deleteProduct),
         content:
-            Text('Вы уверены, что хотите удалить товар "${product.name}"?'),
+            Text('${S.of(context).confirmDeleteProduct} "${product.name}"?'),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(ctx).pop(); // Закрыть диалог без удаления
             },
-            child: Text('Отмена'),
+            child: Text(S.of(context).cancel),
           ),
           TextButton(
             onPressed: () {
@@ -125,7 +126,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               });
               Navigator.of(ctx).pop(); // Закрыть диалог после удаления
             },
-            child: Text('Удалить'),
+            child: Text(S.of(context).deleteProduct),
           ),
         ],
       ),
@@ -137,14 +138,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Очистить все данные'),
-        content: Text('Вы уверены, что хотите очистить все данные?'),
+        title: Text(S.of(context).clearData),
+        content: Text(S.of(context).confirmClearData),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(ctx).pop(); // Закрыть диалог без очистки данных
             },
-            child: Text('Отмена'),
+            child: Text(S.of(context).cancel),
           ),
           TextButton(
             onPressed: () {
@@ -153,7 +154,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               });
               Navigator.of(ctx).pop(); // Закрыть диалог после очистки
             },
-            child: Text('Очистить'),
+            child: Text(S.of(context).clear),
           ),
         ],
       ),
@@ -236,7 +237,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Фиксатор цен'),
+        title: Text(S.of(context).appTitle),
         actions: [
                   IconButton(
             icon: Icon(Icons.brightness_6),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Для сохранения выбора темы
+import 'package:flutter_application_1/generated/l10n.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'generated/l10n.dart'; // Импорт локализации
 import 'screens/product_list_screen.dart';
 
 void main() {
@@ -43,7 +46,14 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Фиксатор цен',
+      localizationsDelegates: const [
+        S.delegate, // Локализация, сгенерированная командой gen-l10n
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      
+      supportedLocales: S.delegate.supportedLocales, // Поддерживаемые локали
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
       themeMode: _themeMode,
