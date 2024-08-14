@@ -8,6 +8,7 @@ import '../widgets/product_list.dart';
 import 'add_product_screen.dart';
 import 'edit_product_screen.dart';
 import 'manage_product_screen.dart';
+import '../data/default_data.dart'; // Импортируем файл с предустановленными данными
 
 class ProductListScreen extends StatefulWidget {
   @override
@@ -73,14 +74,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   void _initializeDefaultData() {
-    _addProductGroup('Фрукты');
-    _addProductGroup('Овощи');
+    // Используем предустановленные данные из default_data.dart
+    _productGroups.addAll(defaultProductGroups);
+    _productNames.addAll(defaultProductNames);
 
-    _addProductName('Персик', 'Фрукты');
-    _addProductName('Яблоко', 'Фрукты');
-    _addProductName('Груша', 'Фрукты');
-    _addProductName('Капуста', 'Овощи');
-    _addProductName('Морковка', 'Овощи');
+    _saveProducts(); // Сохраняем предустановленные данные
   }
 
   void _saveProducts() async {
