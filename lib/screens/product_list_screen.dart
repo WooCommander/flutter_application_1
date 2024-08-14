@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/widgets/most_popular_product.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/product.dart';
 import '../data/data_provider.dart';
@@ -247,41 +248,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.blueAccent,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Самый популярный товар:',
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    '${mostPopularProduct['name']}', // Отображаем имя самого популярного товара
-                    style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
-                  Text(
-                    'Количество: ${mostPopularProduct['count']}', // Отображаем количество упоминаний этого товара
-                    style: TextStyle(fontSize: 16, color: Colors.white70),
-                  ),
-                    if (mostPopularProduct['lowestPrice'] != null)
-                    Text(
-                      'Лучшая цена: ${mostPopularProduct['lowestPrice'].toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: 16, color: Colors.white70),
-                    ),
-                ],
-              ),
-            ),
+          MostPopularProduct(
+            name: mostPopularProduct['name'],
+            count: mostPopularProduct['count'],
+            lowestPrice: mostPopularProduct['lowestPrice'],
           ),
           Expanded(
             child: ProductListView(
