@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/product.dart';
 import '../data/data_provider.dart';
 import 'add_product_screen.dart';
@@ -13,6 +16,7 @@ class ProductListScreen extends StatefulWidget {
 class _ProductListScreenState extends State<ProductListScreen> {
   // Экземпляр класса DataProvider для управления данными
   final DataProvider dataProvider = DataProvider();
+
 
   @override
   void initState() {
@@ -44,8 +48,54 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   // Метод для редактирования продукта (реализация может быть добавлена позже)
   void _editProduct(Product product) {
-    // Логика редактирования продукта
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final _priceController =
+            TextEditingController(text: product.price.toString());
+        final _quantityController =
+            TextEditingController(text: product.quantity.toString());
+        return AlertDialog(
+          title: Text('Редактировать товар'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _priceController,
+                decoration: InputDecoration(labelText: 'Цена за единицу'),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+              ),
+              TextField(
+                controller: _quantityController,
+                decoration: InputDecoration(labelText: 'Количество'),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  product.price = double.parse(_priceController.text);
+                  product.quantity = double.parse(_quantityController.text);
+                  _saveProducts();
+                });
+                Navigator.of(ctx).pop();
+              },
+              child: Text('Сохранить'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+              },
+              child: Text('Отмена'),
+            ),
+          ],
+        );
+      },
+    );
   }
+
 
   // Метод для удаления продукта с подтверждением
   void _deleteProduct(Product product) {
@@ -118,7 +168,31 @@ class _ProductListScreenState extends State<ProductListScreen> {
       ),
     ));
   }
+  void _saveProducts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final productList = dataProvider.products
+        .map((item) => {
+              'name': item.name,
+              'price': item.price,
+              'quantity': item.quantity,
+              'date': item.date.toIso8601String(),
+              'group': item.group,
+            })
+        .toList();
+    prefs.setString('products', json.encode(productList));
 
+    final productNameList = dataProvider.productNames
+        .map((item) => {
+              'name': item.name,
+              'group': item.group,
+            })
+        .toList();
+    prefs.setString('productNames', json.encode(productNameList));
+
+    final productGroupList =
+        dataProvider.productGroups.map((item) => {'name': item.name}).toList();
+    prefs.setString('productGroups', json.encode(productGroupList));
+  }
   // Метод для навигации на экран управления продуктами и группами
   void _navigateToManageProductScreen(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(
