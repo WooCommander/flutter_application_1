@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Для форматирования даты
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/product.dart';
@@ -74,6 +75,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
   void _initializeDefaultData() {
     _addProductGroup('Фрукты');
     _addProductGroup('Овощи');
+    _addProductGroup('Продукты');
+    _addProductGroup('Пром товары');
+    _addProductGroup('Химия');
+    _addProductGroup('Техника');
+    _addProductGroup('Услуги');
+    _addProductGroup('Топливо');
 
     _addProductName('Персик', 'Фрукты');
     _addProductName('Яблоко', 'Фрукты');
@@ -118,6 +125,31 @@ class _ProductListScreenState extends State<ProductListScreen> {
               product.group.toLowerCase().contains(_searchQuery);
         }).toList(),
       );
+    });
+  }
+
+  Map<String, Map<String, List<Product>>> _groupProductsByDateAndCategory(
+      List<Product> products) {
+    final Map<String, Map<String, List<Product>>> groupedProducts = {};
+
+    for (var product in products) {
+      String formattedDate =
+          DateFormat('dd/MM/yyyy').format(product.date); // Форматируем дату
+      if (!groupedProducts.containsKey(formattedDate)) {
+        groupedProducts[formattedDate] = {};
+      }
+      if (!groupedProducts[formattedDate]!.containsKey(product.group)) {
+        groupedProducts[formattedDate]![product.group] = [];
+      }
+      groupedProducts[formattedDate]![product.group]!.add(product);
+    }
+
+    return groupedProducts;
+  }
+
+  double _calculateTotalForDate(List<Product> products) {
+    return products.fold(0.0, (sum, product) {
+      return sum + (product.price * product.quantity);
     });
   }
 
@@ -304,6 +336,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final groupedProducts = _groupProductsByDateAndCategory(_filteredProducts);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Фиксатор цен'),
@@ -334,10 +368,44 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
           ),
           Expanded(
-            child: ProductList(
-              _filteredProducts, // Используем отфильтрованный список
-              onEdit: _editProduct,
-              onDelete: _deleteProduct,
+            child: ListView(
+              children: groupedProducts.entries.map((dateEntry) {
+                final totalForDate = _calculateTotalForDate(
+                  dateEntry.value.values.expand((x) => x).toList(),
+                );
+
+                return ExpansionTile(
+                  title: Text(
+                    '${dateEntry.key} - Итого: ${totalForDate.toStringAsFixed(2)} руб',
+                  ),
+                  children: dateEntry.value.entries.map((groupEntry) {
+                    return ExpansionTile(
+                      title: Text(groupEntry.key),
+                      children: groupEntry.value.map((product) {
+                        return ListTile(
+                          title: Text(product.name),
+                          subtitle: Text(
+                            'Цена: ${product.price.toStringAsFixed(2)} x ${product.quantity.toStringAsFixed(2)} = ${(product.price * product.quantity).toStringAsFixed(2)}',
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit),
+                                onPressed: () => _editProduct(product),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: () => _deleteProduct(product),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  }).toList(),
+                );
+              }).toList(),
             ),
           ),
         ],

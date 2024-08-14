@@ -1,3 +1,4 @@
+// lib/screens/add_product_screen.dart
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../models/product_group.dart';
@@ -19,30 +20,34 @@ class AddProductScreen extends StatefulWidget {
 
 class _AddProductScreenState extends State<AddProductScreen> {
   final _priceController = TextEditingController();
-  final _quantityController = TextEditingController();
+  final _quantityController =
+      TextEditingController(); // Добавлен контроллер для количества
   String _selectedProductName = '';
   String _selectedProductGroup = '';
 
-  @override
-  void initState() {
-    super.initState();
-    if (widget.productNames.isNotEmpty) {
-      _selectedProductName = widget.productNames.first.name;
-    }
-    if (widget.productGroups.isNotEmpty) {
-      _selectedProductGroup = widget.productGroups.first.name;
-    }
-  }
-
   void _submitData() {
-    final enteredPrice = double.tryParse(_priceController.text) ?? 0;
-    final enteredQuantity = double.tryParse(_quantityController.text) ?? 0;
-
-    if (enteredPrice <= 0 || enteredQuantity <= 0 || _selectedProductName.isEmpty || _selectedProductGroup.isEmpty) {
+    if (_selectedProductName.isEmpty ||
+        _priceController.text.isEmpty ||
+        _quantityController.text.isEmpty ||
+        _selectedProductGroup.isEmpty) {
       return;
     }
 
-    widget.addProduct(_selectedProductName, enteredPrice, enteredQuantity, _selectedProductGroup);
+    final enteredPrice = double.parse(_priceController.text);
+    final enteredQuantity =
+        double.parse(_quantityController.text); // Получение количества
+    if (enteredPrice <= 0 || enteredQuantity <= 0) {
+      return;
+    }
+
+    widget.addProduct(_selectedProductName, enteredPrice, enteredQuantity,
+        _selectedProductGroup);
+    _priceController.clear();
+    _quantityController.clear(); // Очистка поля количества
+    setState(() {
+      _selectedProductName = '';
+      _selectedProductGroup = '';
+    });
     Navigator.of(context).pop();
   }
 
@@ -50,40 +55,41 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Добавить товар'),
+        title: Text('Add Product'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            // Существующие группы
             DropdownButton<String>(
-              value: _selectedProductGroup.isEmpty ? null : _selectedProductGroup,
-              hint: Text('Выберите группу'),
-              items: widget.productGroups.map((group) {
-                return DropdownMenuItem(
-                  value: group.name,
-                  child: Text(group.name),
-                );
-              }).toList(),
+              value:
+                  _selectedProductGroup.isEmpty ? null : _selectedProductGroup,
+              hint: Text('Select Product Group'),
+              items: widget.productGroups
+                  .map((productGroup) => DropdownMenuItem<String>(
+                        value: productGroup.name,
+                        child: Text(productGroup.name),
+                      ))
+                  .toList(),
               onChanged: (value) {
                 setState(() {
                   _selectedProductGroup = value!;
+                  _selectedProductName = '';
                 });
               },
             ),
-            // Существующие товары
             DropdownButton<String>(
               value: _selectedProductName.isEmpty ? null : _selectedProductName,
-              hint: Text('Выберите товар'),
+              hint: Text('Select Product'),
               items: widget.productNames
-                  .where((productName) => productName.group == _selectedProductGroup)
-                  .map((product) {
-                    return DropdownMenuItem(
-                      value: product.name,
-                      child: Text(product.name),
-                    );
-                  }).toList(),
+                  .where((productName) =>
+                      productName.group == _selectedProductGroup)
+                  .map((productName) => DropdownMenuItem<String>(
+                        value: productName.name,
+                        child: Text(productName.name),
+                      ))
+                  .toList(),
               onChanged: (value) {
                 setState(() {
                   _selectedProductName = value!;
@@ -92,18 +98,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
             ),
             TextField(
               controller: _priceController,
-              decoration: InputDecoration(labelText: 'Цена за единицу'),
+              decoration: InputDecoration(labelText: 'Price per unit'),
               keyboardType: TextInputType.number,
             ),
             TextField(
-              controller: _quantityController,
-              decoration: InputDecoration(labelText: 'Количество'),
+              controller: _quantityController, // Поле для ввода количества
+              decoration: InputDecoration(labelText: 'Quantity'),
               keyboardType: TextInputType.number,
             ),
-            SizedBox(height: 20),
             ElevatedButton(
               onPressed: _submitData,
-              child: Text('Добавить товар'),
+              child: Text('Add Product'),
             ),
           ],
         ),
