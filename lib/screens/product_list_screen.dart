@@ -75,12 +75,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
   void _initializeDefaultData() {
     _addProductGroup('Фрукты');
     _addProductGroup('Овощи');
-    _addProductGroup('Продукты');
-    _addProductGroup('Пром товары');
-    _addProductGroup('Химия');
-    _addProductGroup('Техника');
-    _addProductGroup('Услуги');
-    _addProductGroup('Топливо');
 
     _addProductName('Персик', 'Фрукты');
     _addProductName('Яблоко', 'Фрукты');
@@ -128,13 +122,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
     });
   }
 
-  Map<String, Map<String, List<Product>>> _groupProductsByDateAndCategory(
-      List<Product> products) {
+  Map<String, Map<String, List<Product>>> _groupProductsByDateAndCategory(List<Product> products) {
     final Map<String, Map<String, List<Product>>> groupedProducts = {};
 
     for (var product in products) {
-      String formattedDate =
-          DateFormat('dd/MM/yyyy').format(product.date); // Форматируем дату
+      String formattedDate = DateFormat('dd/MM/yyyy').format(product.date); // Форматируем дату
       if (!groupedProducts.containsKey(formattedDate)) {
         groupedProducts[formattedDate] = {};
       }
@@ -151,6 +143,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
     return products.fold(0.0, (sum, product) {
       return sum + (product.price * product.quantity);
     });
+  }
+
+  Map<String, dynamic> _calculateTotalForGroup(List<Product> products) {
+    double totalAmount = 0.0;
+    int totalItems = 0;
+
+    for (var product in products) {
+      totalAmount += product.price * product.quantity;
+      totalItems += 1; // Считаем количество товаров в группе
+    }
+
+    return {
+      'totalAmount': totalAmount,
+      'totalItems': totalItems,
+    };
   }
 
   void _clearData() async {
@@ -184,10 +191,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
     showDialog(
       context: context,
       builder: (ctx) {
-        final _priceController =
-            TextEditingController(text: product.price.toString());
-        final _quantityController =
-            TextEditingController(text: product.quantity.toString());
+        final _priceController = TextEditingController(text: product.price.toString());
+        final _quantityController = TextEditingController(text: product.quantity.toString());
         return AlertDialog(
           title: Text('Редактировать товар'),
           content: Column(
@@ -234,8 +239,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Удалить товар'),
-        content:
-            Text('Вы уверены, что хотите удалить товар "${product.name}"?'),
+        content: Text('Вы уверены, что хотите удалить товар "${product.name}"?'),
         actions: [
           TextButton(
             onPressed: () {
@@ -260,8 +264,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   void _addProductName(String name, String group) {
-    bool productExists = _productNames.any((productName) =>
-        productName.name == name && productName.group == group);
+    bool productExists = _productNames.any((productName) => productName.name == name && productName.group == group);
 
     if (!productExists) {
       setState(() {
@@ -318,6 +321,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         addProduct: _addProduct,
         productNames: _productNames,
         productGroups: _productGroups,
+        
       ),
     ));
   }
@@ -362,8 +366,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 border: OutlineInputBorder(),
               ),
               onChanged: (value) {
-                _filterProducts(
-                    value); // Обновление списка при изменении текста
+                _filterProducts(value); // Обновление списка при изменении текста
               },
             ),
           ),
@@ -376,11 +379,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
                 return ExpansionTile(
                   title: Text(
-                    '${dateEntry.key} - Итого: ${totalForDate.toStringAsFixed(2)} руб',
+                    '${dateEntry.key} - Итого: ${totalForDate.toStringAsFixed(2)}',
                   ),
                   children: dateEntry.value.entries.map((groupEntry) {
+                    final groupTotals = _calculateTotalForGroup(groupEntry.value);
                     return ExpansionTile(
-                      title: Text(groupEntry.key),
+                      title: Text(
+                        '${groupEntry.key} - Итого: ${groupTotals['totalAmount'].toStringAsFixed(2)}, Позиции: ${groupTotals['totalItems']}',
+                      ),
                       children: groupEntry.value.map((product) {
                         return ListTile(
                           title: Text(product.name),
