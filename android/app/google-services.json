@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1027040677778",
+    "project_id": "pricetrecker",
+    "storage_bucket": "pricetrecker.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1027040677778:android:85bbf38caec87c34ec3b4b",
+        "android_client_info": {
+          "package_name": "android.intent.action.MAIN"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDWngmfhmSSqplKvfSSIJSWanu7Tdw6-g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
