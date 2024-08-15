@@ -17,3 +17,16 @@ samples, guidance on mobile development, and a full API reference.
 
 
 flutter pub get
+
+
+
+
+    delete pubspec.lock file.
+
+    run flutter clean command.
+
+    run flutter upgrade command.
+
+    run flutter pub get .
+
+    try run your project.
