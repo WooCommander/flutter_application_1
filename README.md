@@ -24,9 +24,10 @@ flutter pub get
     delete pubspec.lock file.
 
     run flutter clean command.
-
+flutter build apk --debug
     run flutter upgrade command.
 
     run flutter pub get .
 
     try run your project.
+flutter build apk

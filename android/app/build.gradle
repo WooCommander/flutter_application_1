@@ -53,15 +53,22 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
-
-    buildTypes {
+    signingConfigs {
+        release {
+            keyAlias 'my-key-alias'
+            keyPassword 'RezidentG1'
+            storeFile file('d:/my-release-key.jks')
+            storePassword 'RezidentG1'
+        }
+    }
+    buildTypes {keyPassword 
         release {
         //     // TODO: Add your own signing config for the release build.
         //     // Signing with the debug keys for now, so `flutter run --release` works.
         //     signingConfig signingConfigs.debug
             shrinkResources true
             minifyEnabled true
-
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
         }
