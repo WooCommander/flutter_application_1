@@ -100,7 +100,7 @@ class DataProvider {
     saveProducts();
   }
 
- Map<String, dynamic> getMostPopularProduct() {
+  Map<String, dynamic> getMostPopularProduct() {
     if (products.isEmpty) {
       return {
         'name': 'Нет данных',
@@ -128,5 +128,45 @@ class DataProvider {
       'count': mostPopularEntry.value,
       'lowestPrice': lowestPrices[mostPopularEntry.key],
     };
+  }
+
+  Future<String> exportDataToJson() async {
+    // Собираем данные
+    final data = {
+      'productGroups': productGroups.map((group) => group.toJson()).toList(),
+      'products': products.map((product) => product.toJson()).toList(),
+      'productNames':
+          productNames.map((productName) => productName.toJson()).toList(),
+    };
+
+    // Конвертируем в JSON
+    return jsonEncode(data);
+  }
+
+  Future<void> importDataFromJson(String jsonData) async {
+    final Map<String, dynamic> data = jsonDecode(jsonData);
+
+    // Импорт групп
+    for (var groupJson in data['productGroups']) {
+      final group = ProductGroup.fromJson(groupJson);
+      if (!productGroups
+          .any((existingGroup) => existingGroup.name == group.name)) {
+        productGroups.add(group);
+      }
+    }
+
+    // Импорт товаров
+    for (var productJson in data['products']) {
+      final product = Product.fromJson(productJson);
+      if (!products.any((existingProduct) =>
+          existingProduct.name == product.name &&
+          existingProduct.group == product.group &&
+          existingProduct.date == product.date)) {
+        products.add(product);
+      }
+    }
+
+    // Сохранение данных
+    saveProducts();
   }
 }
