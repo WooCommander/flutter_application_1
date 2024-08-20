@@ -234,7 +234,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Widget build(BuildContext context) {
     // Получаем информацию о самом популярном товаре
     final mostPopularProduct = dataProvider.getMostPopularProduct();
-
+  DataProvider dp = new DataProvider();
     return Scaffold(
       appBar: AppBar(
         title: Text(S.of(context).appTitle),
@@ -251,6 +251,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
               );
             },
           ),
+           ElevatedButton(
+              onPressed: () async {
+                String jsonData = await dp.exportDataToJson();
+                // Вы можете сохранить этот jsonData в файл, отправить его или поделиться им
+              },
+              child: Text('Выгрузить данные'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                // Предположим, что у вас есть jsonData в виде строки
+                String jsonData = "{}";
+                await dp.importDataFromJson(jsonData);
+              },
+              child: Text('Загрузить данные'),
+            ),
           IconButton(
             icon: Icon(Icons.delete),
             onPressed: _clearData, // Очистка всех данных при нажатии

@@ -60,7 +60,7 @@ class _ManageProductScreenState extends State<ManageProductScreen> {
   }
 
   @override
-  DataProvider dp = new DataProvider();
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -75,21 +75,7 @@ class _ManageProductScreenState extends State<ManageProductScreen> {
               controller: _productGroupController,
               decoration: InputDecoration(labelText: 'Новая группа товаров'),
             ),
-            ElevatedButton(
-              onPressed: () async {
-                String jsonData = await dp.exportDataToJson();
-                // Вы можете сохранить этот jsonData в файл, отправить его или поделиться им
-              },
-              child: Text('Выгрузить данные'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                // Предположим, что у вас есть jsonData в виде строки
-                String jsonData = "{}";
-                await dp.importDataFromJson(jsonData);
-              },
-              child: Text('Загрузить данные'),
-            ),
+           
             ElevatedButton(
               onPressed: _submitProductGroup,
               child: Text('Добавить группу товаров'),
