@@ -15,19 +15,14 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 
+    delete pubspec.lock file
 
-flutter pub get
+    flutter clean
+    flutter upgrade 
 
-
-
-
-    delete pubspec.lock file.
-
-    run flutter clean command.
-flutter build apk --debug
-    run flutter upgrade command.
-
-    run flutter pub get .
+    flutter pub get
 
     try run your project.
-flutter build apk
+    
+    flutter build apk --debug
+    flutter build apk
