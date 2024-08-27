@@ -26,3 +26,5 @@ samples, guidance on mobile development, and a full API reference.
     
     flutter build apk --debug
     flutter build apk
+
+keytool -genkey -v -keystore "d:\my-release-key.jks" -keyalg RSA -keysize 2048 -validity 10000 -alias my-key-alias

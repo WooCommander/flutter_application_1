@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'service_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/generated/l10n.dart';
 import 'package:flutter_application_1/widgets/most_popular_product.dart';
@@ -11,7 +11,6 @@ import 'manage_product_screen.dart';
 import '../widgets/product_list_view.dart';
 
 class ProductListScreen extends StatefulWidget {
-  
   final Function(ThemeMode) onToggleTheme;
   ProductListScreen({required this.onToggleTheme});
   @override
@@ -21,7 +20,6 @@ class ProductListScreen extends StatefulWidget {
 class _ProductListScreenState extends State<ProductListScreen> {
   // Экземпляр класса DataProvider для управления данными
   final DataProvider dataProvider = DataProvider();
-
 
   @override
   void initState() {
@@ -101,7 +99,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-
   // Метод для удаления продукта с подтверждением
   void _deleteProduct(Product product) {
     showDialog(
@@ -173,6 +170,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       ),
     ));
   }
+
   void _saveProducts() async {
     final prefs = await SharedPreferences.getInstance();
     final productList = dataProvider.products
@@ -198,6 +196,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         dataProvider.productGroups.map((item) => {'name': item.name}).toList();
     prefs.setString('productGroups', json.encode(productGroupList));
   }
+
   // Метод для навигации на экран управления продуктами и группами
   void _navigateToManageProductScreen(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(
@@ -234,12 +233,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Widget build(BuildContext context) {
     // Получаем информацию о самом популярном товаре
     final mostPopularProduct = dataProvider.getMostPopularProduct();
-  DataProvider dp = new DataProvider();
+    DataProvider dp = new DataProvider();
     return Scaffold(
       appBar: AppBar(
         title: Text(S.of(context).appTitle),
         actions: [
-                  IconButton(
+          IconButton(
             icon: Icon(Icons.brightness_6),
             onPressed: () {
               // Переключение темы между светлой и темной
@@ -251,21 +250,32 @@ class _ProductListScreenState extends State<ProductListScreen> {
               );
             },
           ),
-           ElevatedButton(
-              onPressed: () async {
-                String jsonData = await dp.exportDataToJson();
-                // Вы можете сохранить этот jsonData в файл, отправить его или поделиться им
-              },
-              child: Text('Выгрузить данные'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                // Предположим, что у вас есть jsonData в виде строки
-                String jsonData = "{}";
-                await dp.importDataFromJson(jsonData);
-              },
-              child: Text('Загрузить данные'),
-            ),
+          //  ElevatedButton(
+          //     onPressed: () async {
+          //       String jsonData = await dp.exportDataToJson();
+          //       // Вы можете сохранить этот jsonData в файл, отправить его или поделиться им
+          //     },
+          //     child: Text('Выгрузить данные'),
+          //   ),
+          //   ElevatedButton(
+          //     onPressed: () async {
+          //       // Предположим, что у вас есть jsonData в виде строки
+          //       String jsonData = "{}";
+          //       await dp.importDataFromJson(jsonData);
+          //     },
+          //     child: Text('Загрузить данные'),
+          //   ),
+           IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ServiceScreen(dataProvider: dataProvider),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: Icon(Icons.delete),
             onPressed: _clearData, // Очистка всех данных при нажатии
