@@ -4,15 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-
 import '../data/data_provider.dart';
 import '../utils/file_utils.dart'; // Импортируем утилиту
 
-class ServiceScreen extends StatelessWidget {
+class ServiceScreen extends StatefulWidget {
   final DataProvider dataProvider;
 
   ServiceScreen({required this.dataProvider});
 
+  @override
+  _ServiceScreenState createState() => _ServiceScreenState();
+}
+
+class _ServiceScreenState extends State<ServiceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,18 +29,22 @@ class ServiceScreen extends StatelessWidget {
           children: [
             ElevatedButton(
               onPressed: () async {
-                String jsonData = await dataProvider.exportDataToJson();
+                String jsonData = await widget.dataProvider.exportDataToJson();
                 File jsonFile = await saveJsonToFile(jsonData);
                 _shareJsonFile(jsonFile);
               },
-              child: Text('Выгрузить и поделиться данными'),
+              child: Text('Поделиться данными'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () async {
                 String? jsonData = await loadJsonFromFile();
                 if (jsonData != null) {
-                  await dataProvider.importDataFromJson(jsonData);
+                  await widget.dataProvider.importDataFromJson(jsonData);
+                  await widget.dataProvider.loadProducts();
+                  setState(() {
+                    // Этот вызов заставит Flutter перерисовать экран с новыми данными
+                  });
                   _showMessage(context, 'Данные успешно загружены');
                 } else {
                   _showMessage(context, 'Ошибка загрузки файла');
@@ -58,7 +66,9 @@ class ServiceScreen extends StatelessWidget {
   }
 
   void _shareJsonFile(File file) {
-    Share.shareXFiles([file.path], text: 'Данные из приложения');
+    // Создаем объект XFile
+    final xFile = XFile(file.path);
+    Share.shareXFiles([xFile], text: 'Данные из приложения');
   }
 
   void _showMessage(BuildContext context, String message) {
