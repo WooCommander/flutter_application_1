@@ -27,4 +27,4 @@ samples, guidance on mobile development, and a full API reference.
     flutter build apk --debug
     flutter build apk
 
-keytool -genkey -v -keystore "d:\my-release-key.jks" -keyalg RSA -keysize 2048 -validity 10000 -alias my-key-alias
+c:\Program Files\JetBrains\PyCharm 2023.3.1\jbr\bin\keytool -genkey -v -keystore "d:\my-release-key.jks" -keyalg RSA -keysize 2048 -validity 10000 -alias my-key-alias

@@ -56,9 +56,9 @@ android {
     signingConfigs {
         release {
             keyAlias 'my-key-alias'
-            keyPassword 'RezidentG1'
-            storeFile file('d:/my-release-key.jks')
-            storePassword 'RezidentG1'
+            keyPassword 'design'
+            storeFile file('d:/my-release-key1.jks')
+            storePassword 'design'
         }
     }
     buildTypes {keyPassword 

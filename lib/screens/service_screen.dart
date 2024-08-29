@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:share/share.dart';
+import 'package:share_plus/share_plus.dart';
+
+
 import '../data/data_provider.dart';
 import '../utils/file_utils.dart'; // Импортируем утилиту
 
@@ -56,7 +58,7 @@ class ServiceScreen extends StatelessWidget {
   }
 
   void _shareJsonFile(File file) {
-    Share.shareFiles([file.path], text: 'Данные из приложения');
+    Share.shareXFiles([file.path], text: 'Данные из приложения');
   }
 
   void _showMessage(BuildContext context, String message) {
