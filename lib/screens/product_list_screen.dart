@@ -36,14 +36,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   // Метод для добавления нового продукта
-  void _addProduct(String name, double price, double quantity, String group) {
+  void _addProduct(String productCode, double price, double quantity, String group) {
     setState(() {
       final newProduct = Product(
-        name: name,
+        id:dataProvider.generateProductCode(),
+        productCode: productCode,
         price: price,
         quantity: quantity,
         date: DateTime.now(), // Присваиваем текущую дату добавления товара
-        group: group,
       );
       dataProvider.addProduct(newProduct); // Добавляем продукт в DataProvider
     });
@@ -106,7 +106,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       builder: (ctx) => AlertDialog(
         title: Text(S.of(context).deleteProduct),
         content:
-            Text('${S.of(context).confirmDeleteProduct} "${product.name}"?'),
+            Text('${S.of(context).confirmDeleteProduct} "${dataProvider.getProductNameById(product.productCode)}"?'),
         actions: [
           TextButton(
             onPressed: () {
@@ -175,11 +175,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final prefs = await SharedPreferences.getInstance();
     final productList = dataProvider.products
         .map((item) => {
-              'name': item.name,
+              'productCode': item.productCode,
               'price': item.price,
               'quantity': item.quantity,
               'date': item.date.toIso8601String(),
-              'group': item.group,
+              
             })
         .toList();
     prefs.setString('products', json.encode(productList));
@@ -187,7 +187,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final productNameList = dataProvider.productNames
         .map((item) => {
               'name': item.name,
-              'group': item.group,
+              'group': item.groupCode,
             })
         .toList();
     prefs.setString('productNames', json.encode(productNameList));
@@ -203,7 +203,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       builder: (context) => ManageProductScreen(
         addProductName: (name, group) {
           setState(() {
-            dataProvider.addProductName(
+            dataProvider.addProductNameByName(
                 name, group); // Добавляем новое имя продукта
           });
         },
@@ -212,7 +212,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         addProductGroup: (name) {
           setState(() {
             dataProvider
-                .addProductGroup(name); // Добавляем новую группу продуктов
+                .addProductGroupByName(name); // Добавляем новую группу продуктов
           });
         },
         productNames:
@@ -250,21 +250,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
               );
             },
           ),
-          //  ElevatedButton(
-          //     onPressed: () async {
-          //       String jsonData = await dp.exportDataToJson();
-          //       // Вы можете сохранить этот jsonData в файл, отправить его или поделиться им
-          //     },
-          //     child: Text('Выгрузить данные'),
-          //   ),
-          //   ElevatedButton(
-          //     onPressed: () async {
-          //       // Предположим, что у вас есть jsonData в виде строки
-          //       String jsonData = "{}";
-          //       await dp.importDataFromJson(jsonData);
-          //     },
-          //     child: Text('Загрузить данные'),
-          //   ),
            IconButton(
             icon: Icon(Icons.settings),
             onPressed: () {
@@ -296,8 +281,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ),
           Expanded(
             child: ProductListView(
-              products: dataProvider
-                  .products, // Передаем список продуктов для отображения
+            dataProvider:dataProvider,
+              products: dataProvider.products,
+              productNames: dataProvider.productNames,
+              // .products, // Передаем список продуктов для отображения
               onEdit: _editProduct, // Передаем функцию редактирования продукта
               onDelete: _deleteProduct, // Передаем функцию удаления продукта
             ),

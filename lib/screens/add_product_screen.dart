@@ -23,7 +23,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _quantityController =
       TextEditingController(); // Добавлен контроллер для количества
   String _selectedProductName = '';
+  String _selectedProductNameCode = '';
   String _selectedProductGroup = '';
+  String _selectedProductGroupCode = '';
 
   void _submitData() {
     if (_selectedProductName.isEmpty ||
@@ -40,13 +42,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
       return;
     }
 
-    widget.addProduct(_selectedProductName, enteredPrice, enteredQuantity,
+    widget.addProduct(_selectedProductNameCode, enteredPrice, enteredQuantity,
         _selectedProductGroup);
     _priceController.clear();
     _quantityController.clear(); // Очистка поля количества
     setState(() {
       _selectedProductName = '';
+      _selectedProductNameCode = '';
       _selectedProductGroup = '';
+      _selectedProductGroupCode = '';
     });
     Navigator.of(context).pop();
   }
@@ -68,14 +72,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
               hint: Text('Выбрать группу'),
               items: widget.productGroups
                   .map((productGroup) => DropdownMenuItem<String>(
-                        value: productGroup.name,
+                        value: productGroup.groupCode,
                         child: Text(productGroup.name),
                       ))
                   .toList(),
               onChanged: (value) {
                 setState(() {
                   _selectedProductGroup = value!;
-                  _selectedProductName = '';
+                  _selectedProductGroupCode = value; // Обновляем код группы
+                  _selectedProductName = ''; // Сброс выбора товара
                 });
               },
             ),
@@ -84,15 +89,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
               hint: Text('Выбрать товар'),
               items: widget.productNames
                   .where((productName) =>
-                      productName.group == _selectedProductGroup)
+                      productName.groupCode == _selectedProductGroupCode)
                   .map((productName) => DropdownMenuItem<String>(
-                        value: productName.name,
+                        value: productName.productCode,
                         child: Text(productName.name),
                       ))
                   .toList(),
               onChanged: (value) {
                 setState(() {
                   _selectedProductName = value!;
+                  _selectedProductNameCode = value; // Обновляем код товара
                 });
               },
             ),

@@ -1,56 +1,67 @@
-// lib/models/product.dart
+/**
+ * основная таблица с добавленными товарами 
+ */
 class Product {
-  String name;
-  double price; // цена за единицу
-  double quantity;
+  String id;
+  String productCode;
+  double price;
   DateTime date;
-  String group;
+  double quantity;
 
-  Product({
-    required this.name,
-    required this.price,
-    required this.quantity,
-    required this.date,
-    required this.group,
-  });
+  Product(
+      {required this.id,
+      required this.productCode,
+      required this.price,
+      required this.date,
+      required this.quantity});
 
-  double get totalPrice => price * quantity; // вычисление общей стоимости
-   Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'price': price,
-      'quantity': quantity,
-      'date': date.toIso8601String(),
-      'group': group,
-    };
-  }
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      name: json['name'],
+      id: json['id'],
+      productCode: json['productCode'],
       price: json['price'],
-      quantity: json['quantity'],
       date: DateTime.parse(json['date']),
-      group: json['group'],
+      quantity: json['quantity'],
     );
   }
-  
-}
 
-class ProductName {
-  String name;
-  String group;
-
-  ProductName(this.name, this.group);
-    Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJson() {
     return {
-      'name': name,
-      'group': group,
+
+      'id': id,
+      'productCode': productCode,
+        // Преобразуем DateTime в строку для JSON
+      'date': date.toIso8601String(),
+      'price': price,
+      'quantity': quantity,
     };
   }
+}
+
+/**
+ * Справочник товаров
+ */
+class ProductName {
+  String productCode;
+  String name;
+  String groupCode; // Код группы, к которой относится товар
+
+  ProductName(
+      {required this.productCode, required this.name, required this.groupCode});
+
   factory ProductName.fromJson(Map<String, dynamic> json) {
     return ProductName(
-       json['name'],
-       json['group'],
+      productCode: json['productCode'],
+      name: json['name'],
+      groupCode: json['groupCode'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'productCode': productCode,
+      'name': name,
+      'groupCode': groupCode,
+    };
   }
 }

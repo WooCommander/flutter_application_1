@@ -1,16 +1,20 @@
-// lib/models/product_group.dart
 class ProductGroup {
+  String groupCode;
   String name;
 
-  ProductGroup(this.name);
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-    };
-  }
+  ProductGroup({required this.groupCode, required this.name});
+
   factory ProductGroup.fromJson(Map<String, dynamic> json) {
     return ProductGroup(
-      json['name'],
+      groupCode: json['groupCode'],
+      name: json['name'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'groupCode': groupCode,
+      'name': name,
+    };
   }
 }

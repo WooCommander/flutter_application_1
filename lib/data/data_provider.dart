@@ -9,6 +9,10 @@ class DataProvider {
   List<ProductName> productNames = [];
   List<ProductGroup> productGroups = [];
 
+  int _productNameCounter = 0;
+  int _productCounter = 0;
+  int _groupCounter = 0;
+
   Future<void> loadProducts() async {
     final prefs = await SharedPreferences.getInstance();
     final isInitialized = prefs.getBool('isInitialized') ?? false;
@@ -20,55 +24,59 @@ class DataProvider {
       final productData = prefs.getString('products');
       final productNameData = prefs.getString('productNames');
       final productGroupData = prefs.getString('productGroups');
-
       if (productData != null) {
         final productList = json.decode(productData) as List;
-        products.addAll(productList.map((item) => Product(
-              name: item['name'],
-              price: item['price'],
-              quantity: (item['quantity'] as num).toDouble(),
-              date: DateTime.parse(item['date']),
-              group: item['group'],
-            )));
+        products.addAll(productList.map((item) => Product.fromJson(item)));
       }
 
       if (productNameData != null) {
         final productNameList = json.decode(productNameData) as List;
-        productNames.addAll(productNameList
-            .map((item) => ProductName(item['name'], item['group'])));
+        productNames
+            .addAll(productNameList.map((item) => ProductName.fromJson(item)));
       }
 
       if (productGroupData != null) {
         final productGroupList = json.decode(productGroupData) as List;
-        productGroups
-            .addAll(productGroupList.map((item) => ProductGroup(item['name'])));
+        productGroups.addAll(
+            productGroupList.map((item) => ProductGroup.fromJson(item)));
+      }
+      _updateCountersBasedOnExistingData();
+    }
+  }
+
+  void _updateCountersBasedOnExistingData() {
+    for (var product in productNames) {
+      int productNumber = int.parse(product.productCode.substring(1));
+      if (productNumber > _productNameCounter) {
+        _productNameCounter = productNumber;
+      }
+    }
+
+    for (var group in productGroups) {
+      int groupNumber = int.parse(group.groupCode.substring(1));
+      if (groupNumber > _groupCounter) {
+        _groupCounter = groupNumber;
+      }
+
+      for (var product in products) {
+        int productNumber = int.parse(product.id.substring(1));
+        if (productNumber > _productCounter) {
+          _productCounter = productNumber;
+        }
       }
     }
   }
 
   Future<void> saveProducts() async {
     final prefs = await SharedPreferences.getInstance();
-    final productList = products
-        .map((item) => {
-              'name': item.name,
-              'price': item.price,
-              'quantity': item.quantity,
-              'date': item.date.toIso8601String(),
-              'group': item.group,
-            })
-        .toList();
+    final productList = products.map((item) => item.toJson()).toList();
     prefs.setString('products', json.encode(productList));
 
-    final productNameList = productNames
-        .map((item) => {
-              'name': item.name,
-              'group': item.group,
-            })
-        .toList();
+    final productNameList = productNames.map((item) => item.toJson()).toList();
     prefs.setString('productNames', json.encode(productNameList));
 
     final productGroupList =
-        productGroups.map((item) => {'name': item.name}).toList();
+        productGroups.map((item) => item.toJson()).toList();
     prefs.setString('productGroups', json.encode(productGroupList));
   }
 
@@ -90,13 +98,32 @@ class DataProvider {
     saveProducts();
   }
 
-  void addProductName(String name, String group) {
-    productNames.add(ProductName(name, group));
+  void addProductName(ProductName value) {
+    productNames.add(value);
     saveProducts();
   }
 
-  void addProductGroup(String name) {
-    productGroups.add(ProductGroup(name));
+  /// Добавляет новый продукт в справочник товаров.
+  ///
+  ///[name] - название продукта.
+  ///[groupCode] - код группы, к которой относится продукт.
+  void addProductNameByName(String name, String groupCode) {
+    var product = ProductName(
+        productCode: generateProductNameCode(),
+        name: name,
+        groupCode: groupCode);
+    productNames.add(product);
+    saveProducts();
+  }
+
+  void addProductGroup(ProductGroup group) {
+    productGroups.add(group);
+    saveProducts();
+  }
+
+  void addProductGroupByName(String name) {
+    var group = ProductGroup(groupCode: generateGroupCode(), name: name);
+    productGroups.add(group);
     saveProducts();
   }
 
@@ -113,18 +140,22 @@ class DataProvider {
     Map<String, double> lowestPrices = {};
 
     for (var product in products) {
-      productCounts[product.name] = (productCounts[product.name] ?? 0) + 1;
-      if (lowestPrices[product.name] == null ||
-          product.price < lowestPrices[product.name]!) {
-        lowestPrices[product.name] = product.price;
+      productCounts[product.productCode] =
+          (productCounts[product.productCode] ?? 0) + 1;
+      if (lowestPrices[product.productCode] == null ||
+          product.price < lowestPrices[product.productCode]!) {
+        lowestPrices[product.productCode] = product.price;
       }
     }
 
     var mostPopularEntry =
         productCounts.entries.reduce((a, b) => a.value > b.value ? a : b);
 
+    String? productName = productNames
+        .firstWhere((name) => name.productCode == mostPopularEntry.key)
+        .name;
     return {
-      'name': mostPopularEntry.key,
+      'name': productName,
       'count': mostPopularEntry.value,
       'lowestPrice': lowestPrices[mostPopularEntry.key],
     };
@@ -150,18 +181,29 @@ class DataProvider {
     for (var groupJson in data['productGroups']) {
       final group = ProductGroup.fromJson(groupJson);
       if (!productGroups
-          .any((existingGroup) => existingGroup.name == group.name)) {
+          .any((existingGroup) => existingGroup.groupCode == group.groupCode)) {
         productGroups.add(group);
       }
     }
 
     // Импорт товаров
+    for (var productNameJson in data['productNames']) {
+      final productName = ProductName.fromJson(productNameJson);
+      if (!productNames.any((existingName) =>
+          existingName.productCode == productName.productCode)) {
+        productNames.add(productName);
+      }
+    }
+    
+    // Импорт продуктов
     for (var productJson in data['products']) {
       final product = Product.fromJson(productJson);
       if (!products.any((existingProduct) =>
-          existingProduct.name == product.name &&
-          existingProduct.group == product.group &&
-          existingProduct.date == product.date)) {
+          existingProduct.productCode == product.productCode &&
+          existingProduct.date == product.date &&
+          existingProduct.price == product.price &&
+          existingProduct.quantity == product.quantity)) {
+        product.id = generateProductCode();
         products.add(product);
       }
     }
@@ -169,5 +211,47 @@ class DataProvider {
     // Сохранение данных
     saveProducts();
   }
-}
 
+  String generateProductNameCode() {
+    _productNameCounter++;
+    return 'P${_productNameCounter.toString().padLeft(3, '0')}';
+  }
+
+  String generateProductCode() {
+    _productCounter++;
+    return 'I${_productCounter.toString().padLeft(3, '0')}';
+  }
+
+  String generateGroupCode() {
+    _groupCounter++;
+    return 'G${_groupCounter.toString().padLeft(3, '0')}';
+  }
+
+  String getProductNameById(String code) {
+    try {
+      // Ищем товар с соответствующим кодом
+      final item = productNames.firstWhere(
+        (product) => product.productCode == code,
+      );
+      // Возвращаем имя товара
+      return item.name;
+    } catch (e) {
+      // Если товар не найден, возвращаем значение по умолчанию
+      return 'Неизвестный товар';
+    }
+  }
+
+  String getGroupNameById(String code) {
+    try {
+      // Ищем товар с соответствующим кодом
+      final item = productGroups.firstWhere(
+        (product) => product.groupCode == code,
+      );
+      // Возвращаем имя товара
+      return item.name;
+    } catch (e) {
+      // Если товар не найден, возвращаем значение по умолчанию
+      return 'Неизвестный товар';
+    }
+  }
+}

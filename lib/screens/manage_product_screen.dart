@@ -75,7 +75,6 @@ class _ManageProductScreenState extends State<ManageProductScreen> {
               controller: _productGroupController,
               decoration: InputDecoration(labelText: 'Новая группа товаров'),
             ),
-           
             ElevatedButton(
               onPressed: _submitProductGroup,
               child: Text('Добавить группу товаров'),
