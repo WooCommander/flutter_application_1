@@ -151,7 +151,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   return ExpansionTile(
                     key: UniqueKey(), // Уникальный ключ для каждой группы
                     title: Text(
-                        '${group.name} (${filteredProductsInGroup.length})'),
+                      '${group.name} (${filteredProductsInGroup.length})',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold, // Жирный шрифт
+                        // color: Colors.amber[900],
+                      ),
+                    ),
                     initiallyExpanded: _groupExpansionState[group.groupCode] ??
                         false, // Используем состояние развернутости
                     onExpansionChanged: (isExpanded) {
@@ -162,6 +167,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     children: filteredProductsInGroup.map((productName) {
                       return ListTile(
                         title: Text(productName.name),
+                        dense: true, // Уменьшает высоту строки
+                        contentPadding: EdgeInsets.symmetric(
+                            vertical: 0, horizontal: 16.0), // Отступы
                         onTap: () {
                           setState(() {
                             _selectedProductName = productName.name;
