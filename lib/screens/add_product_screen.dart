@@ -1,4 +1,3 @@
-// lib/screens/add_product_screen.dart
 import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../models/product_group.dart';
@@ -20,38 +19,90 @@ class AddProductScreen extends StatefulWidget {
 
 class _AddProductScreenState extends State<AddProductScreen> {
   final _priceController = TextEditingController();
-  final _quantityController =
-      TextEditingController(); // Добавлен контроллер для количества
+  final _quantityController = TextEditingController();
+  final _searchController = TextEditingController();
+
   String _selectedProductName = '';
   String _selectedProductNameCode = '';
   String _selectedProductGroup = '';
   String _selectedProductGroupCode = '';
 
+  List<ProductName> _filteredProductNames = [];
+  Map<String, bool> _groupExpansionState = {}; // Состояние каждой группы
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredProductNames = widget.productNames;
+    _searchController.addListener(_filterProducts);
+
+    // Инициализация состояния развернутости для каждой группы
+    widget.productGroups.forEach((group) {
+      _groupExpansionState[group.groupCode] =
+          false; // Изначально все группы свернуты
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Фильтрация товаров по введенному тексту
+  void _filterProducts() {
+    setState(() {
+      String searchText = _searchController.text.toLowerCase();
+      _filteredProductNames = widget.productNames
+          .where((product) => product.name.toLowerCase().contains(searchText))
+          .toList();
+    });
+  }
+
+  // Функция для раскрытия всех групп
+  void _expandAllGroups() {
+    setState(() {
+      widget.productGroups.forEach((group) {
+        _groupExpansionState[group.groupCode] = true;
+      });
+    });
+  }
+
+  // Функция для сворачивания всех групп
+  void _collapseAllGroups() {
+    setState(() {
+      widget.productGroups.forEach((group) {
+        _groupExpansionState[group.groupCode] = false;
+      });
+    });
+  }
+
   void _submitData() {
     if (_selectedProductName.isEmpty ||
         _priceController.text.isEmpty ||
-        _quantityController.text.isEmpty ||
-        _selectedProductGroup.isEmpty) {
+        _quantityController.text.isEmpty) {
       return;
     }
 
     final enteredPrice = double.parse(_priceController.text);
-    final enteredQuantity =
-        double.parse(_quantityController.text); // Получение количества
+    final enteredQuantity = double.parse(_quantityController.text);
+
     if (enteredPrice <= 0 || enteredQuantity <= 0) {
       return;
     }
 
     widget.addProduct(_selectedProductNameCode, enteredPrice, enteredQuantity,
         _selectedProductGroup);
+
     _priceController.clear();
-    _quantityController.clear(); // Очистка поля количества
+    _quantityController.clear();
     setState(() {
       _selectedProductName = '';
       _selectedProductNameCode = '';
       _selectedProductGroup = '';
       _selectedProductGroupCode = '';
     });
+
     Navigator.of(context).pop();
   }
 
@@ -60,61 +111,110 @@ class _AddProductScreenState extends State<AddProductScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Добавить товар'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.expand_more), // Иконка для раскрытия всех групп
+            onPressed: _expandAllGroups,
+          ),
+          IconButton(
+            icon: Icon(Icons.expand_less), // Иконка для сворачивания всех групп
+            onPressed: _collapseAllGroups,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            DropdownButton<String>(
-              value:
-                  _selectedProductGroup.isEmpty ? null : _selectedProductGroup,
-              hint: Text('Выбрать группу'),
-              items: widget.productGroups
-                  .map((productGroup) => DropdownMenuItem<String>(
-                        value: productGroup.groupCode,
-                        child: Text(productGroup.name),
-                      ))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedProductGroup = value!;
-                  _selectedProductGroupCode = value; // Обновляем код группы
-                  _selectedProductName = ''; // Сброс выбора товара
-                });
-              },
-            ),
-            DropdownButton<String>(
-              value: _selectedProductName.isEmpty ? null : _selectedProductName,
-              hint: Text('Выбрать товар'),
-              items: widget.productNames
-                  .where((productName) =>
-                      productName.groupCode == _selectedProductGroupCode)
-                  .map((productName) => DropdownMenuItem<String>(
-                        value: productName.productCode,
-                        child: Text(productName.name),
-                      ))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedProductName = value!;
-                  _selectedProductNameCode = value; // Обновляем код товара
-                });
-              },
-            ),
             TextField(
-              controller: _priceController,
-              decoration: InputDecoration(labelText: 'Цена за еденицу'),
-              keyboardType: TextInputType.number,
+              controller: _searchController,
+              decoration:
+                  InputDecoration(labelText: 'Поиск по названию товара'),
             ),
-            TextField(
-              controller: _quantityController, // Поле для ввода количества
-              decoration: InputDecoration(labelText: 'Количество'),
-              keyboardType: TextInputType.number,
-            ),
-            ElevatedButton(
-              onPressed: _submitData,
-              child: Text('Добавить товар'),
+            Expanded(
+              child: ListView.builder(
+                itemCount: widget.productGroups.length,
+                itemBuilder: (ctx, index) {
+                  final group = widget.productGroups[index];
+
+                  // Фильтруем товары по группе
+                  var filteredProductsInGroup = _filteredProductNames
+                      .where((productName) =>
+                          productName.groupCode == group.groupCode)
+                      .toList();
+
+                  // Если товаров в группе нет, не отображаем группу
+                  if (filteredProductsInGroup.isEmpty) {
+                    return SizedBox.shrink();
+                  }
+
+                  return ExpansionTile(
+                    key: UniqueKey(), // Уникальный ключ для каждой группы
+                    title: Text(
+                        '${group.name} (${filteredProductsInGroup.length})'),
+                    initiallyExpanded: _groupExpansionState[group.groupCode] ??
+                        false, // Используем состояние развернутости
+                    onExpansionChanged: (isExpanded) {
+                      setState(() {
+                        _groupExpansionState[group.groupCode] = isExpanded;
+                      });
+                    },
+                    children: filteredProductsInGroup.map((productName) {
+                      return ListTile(
+                        title: Text(productName.name),
+                        onTap: () {
+                          setState(() {
+                            _selectedProductName = productName.name;
+                            _selectedProductNameCode = productName.productCode;
+                            _selectedProductGroup = group.name;
+                            _selectedProductGroupCode = group.groupCode;
+                          });
+
+                          // Показываем диалог для ввода цены и количества
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: Text('Введите цену и количество'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  TextField(
+                                    controller: _priceController,
+                                    decoration: InputDecoration(
+                                        labelText: 'Цена за единицу'),
+                                    keyboardType: TextInputType.number,
+                                  ),
+                                  TextField(
+                                    controller: _quantityController,
+                                    decoration: InputDecoration(
+                                        labelText: 'Количество'),
+                                    keyboardType: TextInputType.number,
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(ctx).pop();
+                                  },
+                                  child: Text('Отмена'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    _submitData();
+                                    Navigator.of(ctx).pop();
+                                  },
+                                  child: Text('Добавить'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
             ),
           ],
         ),
