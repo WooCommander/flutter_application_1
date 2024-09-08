@@ -6,11 +6,13 @@ class AddProductScreen extends StatefulWidget {
   final Function(String, double, double, String) addProduct;
   final List<ProductName> productNames;
   final List<ProductGroup> productGroups;
+   final List<Product> existingProducts; // Список уже добавленных товаров
 
   AddProductScreen({
     required this.addProduct,
     required this.productNames,
     required this.productGroups,
+    required this.existingProducts, // Передаем список существующих товаров
   });
 
   @override
@@ -42,7 +44,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
           false; // Изначально все группы свернуты
     });
   }
-
+// Функция для поиска последней цены товара
+  double? _getLastPrice(String productCode) {
+    final existingProduct = widget.existingProducts
+        .where((product) => product.productCode == productCode)
+        .toList();
+    if (existingProduct.isNotEmpty) {
+      // Возвращаем последнюю цену (из последнего добавленного товара)
+      return existingProduct.last.price;
+    }
+    return null; // Возвращаем null, если товара нет
+  }
   @override
   void dispose() {
     _searchController.dispose();
@@ -176,6 +188,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             _selectedProductNameCode = productName.productCode;
                             _selectedProductGroup = group.name;
                             _selectedProductGroupCode = group.groupCode;
+                             // Если товар уже добавлялся, подставляем последнюю цену
+                            final lastPrice =
+                                _getLastPrice(productName.productCode);
+                            if (lastPrice != null) {
+                              _priceController.text = lastPrice.toString();
+                            }
                           });
 
                           // Показываем диалог для ввода цены и количества

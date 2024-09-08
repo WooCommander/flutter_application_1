@@ -9,6 +9,7 @@ import '../data/data_provider.dart';
 import 'add_product_screen.dart';
 import 'manage_product_screen.dart';
 import '../widgets/product_list_view.dart';
+import 'dart:async';
 
 class ProductListScreen extends StatefulWidget {
   final Function(ThemeMode) onToggleTheme;
@@ -36,10 +37,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   // Метод для добавления нового продукта
-  void _addProduct(String productCode, double price, double quantity, String group) {
+  void _addProduct(
+      String productCode, double price, double quantity, String group) {
     setState(() {
       final newProduct = Product(
-        id:dataProvider.generateProductCode(),
+        id: dataProvider.generateProductCode(),
         productCode: productCode,
         price: price,
         quantity: quantity,
@@ -105,8 +107,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(S.of(context).deleteProduct),
-        content:
-            Text('${S.of(context).confirmDeleteProduct} "${dataProvider.getProductNameById(product.productCode)}"?'),
+        content: Text(
+            '${S.of(context).confirmDeleteProduct} "${dataProvider.getProductNameById(product.productCode)}"?'),
         actions: [
           TextButton(
             onPressed: () {
@@ -163,6 +165,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (context) => AddProductScreen(
         addProduct: _addProduct, // Передаем функцию добавления продукта
+        existingProducts: dataProvider.products,
         productNames:
             dataProvider.productNames, // Передаем список имен продуктов
         productGroups:
@@ -179,7 +182,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
               'price': item.price,
               'quantity': item.quantity,
               'date': item.date.toIso8601String(),
-              
             })
         .toList();
     prefs.setString('products', json.encode(productList));
@@ -211,8 +213,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
             dataProvider.productGroups, // Передаем список групп продуктов
         addProductGroup: (name) {
           setState(() {
-            dataProvider
-                .addProductGroupByName(name); // Добавляем новую группу продуктов
+            dataProvider.addProductGroupByName(
+                name); // Добавляем новую группу продуктов
           });
         },
         productNames:
@@ -229,73 +231,92 @@ class _ProductListScreenState extends State<ProductListScreen> {
     ));
   }
 
+  DateTime? lastPressed;
+  Future<bool> _onWillPop() {
+    final now = DateTime.now();
+    final maxDuration = Duration(seconds: 2);
+
+    if (lastPressed == null || now.difference(lastPressed!) > maxDuration) {
+      lastPressed = now;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Нажмите еще раз, чтобы выйти')),
+      );
+      return Future.value(false); // Не закрываем приложение, если нажали 1 раз
+    }
+    return Future.value(true); // Закрываем приложение, если нажали второй раз
+  }
+
   @override
   Widget build(BuildContext context) {
     // Получаем информацию о самом популярном товаре
     final mostPopularProduct = dataProvider.getMostPopularProduct();
     DataProvider dp = new DataProvider();
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(S.of(context).appTitle),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.brightness_6),
-            onPressed: () {
-              // Переключение темы между светлой и темной
-              final currentTheme = Theme.of(context).brightness;
-              widget.onToggleTheme(
-                currentTheme == Brightness.light
-                    ? ThemeMode.dark
-                    : ThemeMode.light,
-              );
-            },
+    return WillPopScope(
+        onWillPop: _onWillPop, // Обрабатываем событие "назад"
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(S.of(context).appTitle),
+            actions: [
+              IconButton(
+                icon: Icon(Icons.brightness_6),
+                onPressed: () {
+                  // Переключение темы между светлой и темной
+                  final currentTheme = Theme.of(context).brightness;
+                  widget.onToggleTheme(
+                    currentTheme == Brightness.light
+                        ? ThemeMode.dark
+                        : ThemeMode.light,
+                  );
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.settings),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ServiceScreen(dataProvider: dataProvider),
+                    ),
+                  );
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: _clearData, // Очистка всех данных при нажатии
+              ),
+              IconButton(
+                icon: Icon(Icons.edit),
+                onPressed: () => _navigateToManageProductScreen(
+                    context), // Переход на экран управления продуктами
+              ),
+            ],
           ),
-           IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) =>
-                      ServiceScreen(dataProvider: dataProvider),
+          body: Column(
+            children: [
+              MostPopularProduct(
+                name: mostPopularProduct['name'],
+                count: mostPopularProduct['count'],
+                lowestPrice: mostPopularProduct['lowestPrice'],
+              ),
+              Expanded(
+                child: ProductListView(
+                  dataProvider: dataProvider,
+                  products: dataProvider.products,
+                  productNames: dataProvider.productNames,
+                  // .products, // Передаем список продуктов для отображения
+                  onEdit:
+                      _editProduct, // Передаем функцию редактирования продукта
+                  onDelete:
+                      _deleteProduct, // Передаем функцию удаления продукта
                 ),
-              );
-            },
+              ),
+            ],
           ),
-          IconButton(
-            icon: Icon(Icons.delete),
-            onPressed: _clearData, // Очистка всех данных при нажатии
+          floatingActionButton: FloatingActionButton(
+            child: Icon(Icons.add),
+            onPressed: () => _navigateToAddProductScreen(
+                context), // Переход на экран добавления продукта
           ),
-          IconButton(
-            icon: Icon(Icons.edit),
-            onPressed: () => _navigateToManageProductScreen(
-                context), // Переход на экран управления продуктами
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          MostPopularProduct(
-            name: mostPopularProduct['name'],
-            count: mostPopularProduct['count'],
-            lowestPrice: mostPopularProduct['lowestPrice'],
-          ),
-          Expanded(
-            child: ProductListView(
-            dataProvider:dataProvider,
-              products: dataProvider.products,
-              productNames: dataProvider.productNames,
-              // .products, // Передаем список продуктов для отображения
-              onEdit: _editProduct, // Передаем функцию редактирования продукта
-              onDelete: _deleteProduct, // Передаем функцию удаления продукта
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () => _navigateToAddProductScreen(
-            context), // Переход на экран добавления продукта
-      ),
-    );
+        ));
   }
 }
