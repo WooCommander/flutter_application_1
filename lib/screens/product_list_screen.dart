@@ -248,7 +248,61 @@ class _ProductListScreenState extends State<ProductListScreen> {
     SystemNavigator.pop();
     return Future.value(true); // Закрываем приложение, если нажали второй раз
   }
-
+Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor,
+            ),
+            child: Text(
+              'Меню',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+              ),
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.brightness_6),
+            title: Text('Переключить тему'),
+            onTap: () {
+              final currentTheme = Theme.of(context).brightness;
+              widget.onToggleTheme(
+                currentTheme == Brightness.light
+                    ? ThemeMode.dark
+                    : ThemeMode.light,
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.settings),
+            title: Text('Настройки'),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ServiceScreen(dataProvider: dataProvider),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.delete),
+            title: Text('Очистить данные'),
+            onTap: () => _clearData(),
+          ),
+          ListTile(
+            leading: Icon(Icons.edit),
+            title: Text('Управление продуктами'),
+            onTap: () => _navigateToManageProductScreen(context),
+          ),
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     // Получаем информацию о самом популярном товаре
@@ -272,28 +326,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   );
                 },
               ),
-              IconButton(
-                icon: Icon(Icons.settings),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ServiceScreen(dataProvider: dataProvider),
-                    ),
-                  );
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: _clearData, // Очистка всех данных при нажатии
-              ),
-              IconButton(
-                icon: Icon(Icons.edit),
-                onPressed: () => _navigateToManageProductScreen(
-                    context), // Переход на экран управления продуктами
-              ),
+            
+             
             ],
           ),
+          drawer: _buildDrawer(context), // Добавляем шторку
           body: Column(
             children: [
               MostPopularProduct(
