@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:flutter/services.dart';
+
 import 'service_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/generated/l10n.dart';
@@ -243,6 +245,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       );
       return Future.value(false); // Не закрываем приложение, если нажали 1 раз
     }
+    SystemNavigator.pop();
     return Future.value(true); // Закрываем приложение, если нажали второй раз
   }
 
